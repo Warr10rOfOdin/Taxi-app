@@ -1,0 +1,9 @@
+{
+  "accounts": [
+    {
+      "account": "9581.15.00195",
+      "name": "Driftskonto"
+    }
+  ],
+  "default": "1234.12.12345"
+}

@@ -1,0 +1,23 @@
+{
+  "templates": [
+    {
+      "name": "Lønn",
+      "columns": [
+        "Skiftnr",
+        "Løyve",
+        "Sjaafor",
+        "Start_Dato Tid",
+        "Slutt_Dato Tid",
+        "Turer",
+        "Total_Meter",
+        "Total_Kreditt",
+        "Total_Kroner",
+        "Sub_Total",
+        "Bomtur_Kroner",
+        "Kreditt_Utlegg",
+        "Kreditt_Tips"
+      ]
+    }
+  ],
+  "default": "Lønn"
+}

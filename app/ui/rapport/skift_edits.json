@@ -1,0 +1,16 @@
+[
+  {
+    "skiftnr": "829",
+    "loyve": "VE-2488",
+    "amount": 189.0,
+    "note": "Trykka feil, slått inn kreditt etterpå",
+    "timestamp": "2025-08-05 13:14:41"
+  },
+  {
+    "skiftnr": "829",
+    "loyve": "VE2488",
+    "amount": -189.0,
+    "note": "Trykka feil, slått inn kreditt etterpå",
+    "timestamp": "2025-08-05 13:16:52"
+  }
+]

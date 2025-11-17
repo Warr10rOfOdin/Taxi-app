@@ -1,0 +1,52 @@
+[
+  {
+    "name": "Skift",
+    "columns": [
+      "Skiftnr",
+      "Løyve",
+      "Sjaafor",
+      "Start_Dato Tid",
+      "Slutt_Dato Tid",
+      "Turer",
+      "Total_Meter",
+      "Opptatt_Meter",
+      "Total_Kroner",
+      "Sub_Total",
+      "Bomtur_Kroner",
+      "Kreditt_Utlegg",
+      "Kreditt_Tips",
+      "Kontant",
+      "Kreditt",
+      "Lonn",
+      "Skatt",
+      "Totalt_Eier",
+      "Total Kreditt",
+      "Kontant_Eier",
+      "Total Mva",
+      "Rest Mva"
+    ]
+  },
+  {
+    "name": "Salg",
+    "columns": [
+      "Skiftnr",
+      "Løyve",
+      "Sjaafor",
+      "Start_Dato Tid",
+      "Slutt_Dato Tid",
+      "Turer",
+      "Total_Meter",
+      "Opptatt_Meter",
+      "Total_Kreditt",
+      "Total_Kroner",
+      "Sub_Total",
+      "Bomtur_Kroner",
+      "Kreditt_Utlegg",
+      "Kreditt_Tips",
+      "Totalt_Eier",
+      "Kontant_Eier",
+      "Total Mva",
+      "Rest Mva"
+    ]
+  }
+]

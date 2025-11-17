@@ -1,0 +1,27 @@
+{
+  "drivers": [
+    {
+      "name": "Toni Kolve",
+      "id": "1741",
+      "percent": 45.0,
+      "bank_account": ""
+    },
+    {
+      "name": "Daniel Konlak Stabæk",
+      "id": "1041"
+    },
+    {
+      "name": "Nikolas Lid",
+      "id": "1037",
+      "percent": 45.0,
+      "bank_account": "9581.15.00195"
+    },
+    {
+      "name": "Bjarte Norevik",
+      "id": "4010",
+      "percent": 45.0,
+      "bank_account": "9581.15.00195"
+    }
+  ],
+  "default": "1741"
+}
