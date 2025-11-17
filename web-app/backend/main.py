@@ -16,10 +16,14 @@ import auth
 from database import get_db, init_db, engine
 from datetime import timedelta
 
-# Initialize database
-models.Base.metadata.create_all(bind=engine)
-
 app = FastAPI(title="Voss Taxi Web App", version="1.0.0")
+
+# Initialize database tables (safe for serverless)
+try:
+    models.Base.metadata.create_all(bind=engine)
+except Exception as e:
+    print(f"Warning: Could not initialize database tables: {e}")
+    # Tables may already exist or database may be initializing
 
 # CORS middleware
 ALLOWED_ORIGINS = os.getenv(
@@ -504,6 +508,10 @@ def generate_salary_pdf(report_id: int, db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating PDF: {str(e)}")
 
+
+# Vercel serverless handler
+from mangum import Mangum
+handler = Mangum(app)
 
 if __name__ == "__main__":
     import uvicorn
