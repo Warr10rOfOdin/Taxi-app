@@ -20,17 +20,24 @@ models.Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Voss Taxi Web App", version="1.0.0")
 
 # CORS middleware
+ALLOWED_ORIGINS = os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:3000,http://localhost:5173"
+).split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],  # React dev servers
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Create directories for uploads and PDFs
-os.makedirs("uploads", exist_ok=True)
-os.makedirs("pdfs", exist_ok=True)
+# Create directories for uploads and PDFs (use /tmp in serverless)
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", "uploads")
+PDF_DIR = os.getenv("PDF_DIR", "pdfs")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+os.makedirs(PDF_DIR, exist_ok=True)
 
 
 # Health check
@@ -181,7 +188,7 @@ async def parse_uploaded_file(file: UploadFile = File(...)):
     """Parse uploaded Excel/DAT file and return preview"""
     try:
         # Save uploaded file temporarily
-        temp_path = f"uploads/temp_{datetime.now().timestamp()}_{file.filename}"
+        temp_path = f"{UPLOAD_DIR}/temp_{datetime.now().timestamp()}_{file.filename}"
         with open(temp_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
@@ -227,7 +234,7 @@ async def create_shift_report(
     """Create a new shift report from uploaded file"""
     try:
         # Save uploaded file
-        file_path = f"uploads/{datetime.now().timestamp()}_{file.filename}"
+        file_path = f"{UPLOAD_DIR}/{datetime.now().timestamp()}_{file.filename}"
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
@@ -307,7 +314,7 @@ async def create_salary_report(
 
         for file in files:
             # Save uploaded file
-            file_path = f"uploads/{datetime.now().timestamp()}_{file.filename}"
+            file_path = f"{UPLOAD_DIR}/{datetime.now().timestamp()}_{file.filename}"
             with open(file_path, "wb") as buffer:
                 shutil.copyfileobj(file.file, buffer)
 
@@ -377,7 +384,7 @@ def generate_shift_pdf(report_id: int, db: Session = Depends(get_db)):
 
         # Generate PDF
         pdf_filename = f"shift_report_{report_id}_{datetime.now().timestamp()}.pdf"
-        pdf_path = f"pdfs/{pdf_filename}"
+        pdf_path = f"{PDF_DIR}/{pdf_filename}"
 
         services.generate_shift_pdf(
             pdf_path,
@@ -433,7 +440,7 @@ def generate_salary_pdf(report_id: int, db: Session = Depends(get_db)):
 
         # Generate PDF
         pdf_filename = f"salary_report_{report_id}_{datetime.now().timestamp()}.pdf"
-        pdf_path = f"pdfs/{pdf_filename}"
+        pdf_path = f"{PDF_DIR}/{pdf_filename}"
 
         services.generate_salary_pdf(pdf_path, salary_data, driver_info, company_info)
 

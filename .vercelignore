@@ -1,0 +1,27 @@
+# Old desktop app files
+app/
+main.py
+requirements.txt
+
+# Documentation (not needed for deployment)
+*.md
+!VERCEL_DEPLOYMENT.md
+!VERCEL_QUICKSTART.md
+
+# Development files
+.git/
+.vscode/
+.idea/
+
+# Local environment
+venv/
+__pycache__/
+*.pyc
+.env
+.env.local
+
+# Temporary files
+*.log
+taxi_app.db
+uploads/
+pdfs/

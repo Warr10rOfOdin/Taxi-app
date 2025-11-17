@@ -27,6 +27,24 @@ A modern web application for managing taxi shift reports and salary calculations
 - **React Router**: Client-side routing
 - **Axios**: HTTP client
 
+## Quick Deployment
+
+### Deploy to Vercel (Recommended) ⚡
+
+The fastest way to deploy this application:
+
+1. **Quick Start:** Follow [VERCEL_QUICKSTART.md](./VERCEL_QUICKSTART.md) for 5-minute deployment
+2. **Detailed Guide:** See [VERCEL_DEPLOYMENT.md](../VERCEL_DEPLOYMENT.md) for comprehensive instructions
+
+**What you need:**
+- Vercel account (free tier available)
+- PostgreSQL database (Supabase/Vercel Postgres free tier)
+- 5 minutes of your time
+
+### Local Development
+
+See "Running the Application" section below for local setup.
+
 ## Project Structure
 
 ```
