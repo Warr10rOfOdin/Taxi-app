@@ -16,8 +16,14 @@ ALLOWED_ORIGINS=https://voss-taxi.app,https://www.voss-taxi.app,https://voss-tax
 ```
 
 ```
-DATABASE_URL=postgresql://postgres.xpqxrvzfwokbzvjdvduc:Toni19881209@aws-0-eu-central-1.pooler.supabase.com:6543/postgres
+DATABASE_URL=postgresql://postgres.[PROJECT-REF]:[YOUR-PASSWORD]@aws-0-eu-central-1.pooler.supabase.com:6543/postgres?sslmode=require
 ```
+
+**Get your actual DATABASE_URL from:**
+1. Go to your Supabase project dashboard
+2. Click "Project Settings" → "Database"
+3. Scroll to "Connection string" → Select "URI" and "Use connection pooling"
+4. Copy the connection string (it will have your actual password)
 
 ```
 SECRET_KEY=your-super-secret-key-change-this-in-production-min-32-chars
