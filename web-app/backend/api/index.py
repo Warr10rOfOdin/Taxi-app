@@ -1,9 +1,24 @@
 from http.server import BaseHTTPRequestHandler
+import json
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
+        response = {
+            "status": "ok",
+            "message": "Voss Taxi Web App API",
+            "version": "1.0.0",
+            "endpoint": self.path
+        }
+
         self.send_response(200)
-        self.send_header('Content-type', 'application/json')
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
-        self.wfile.write(b'{"status":"ok","message":"Direct HTTP handler works!"}')
+        self.wfile.write(json.dumps(response).encode())
+        return
+
+    def do_HEAD(self):
+        self.send_response(200)
+        self.send_header('Content-Type', 'application/json')
+        self.end_headers()
         return
