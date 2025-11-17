@@ -2,32 +2,59 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
-from dotenv import load_dotenv
+import sys
 
-load_dotenv()
+# Don't load .env in production (Vercel injects env vars directly)
+if os.getenv("VERCEL") != "1":
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except ImportError:
+        pass  # python-dotenv not installed, that's ok
 
 # Use /tmp for SQLite in serverless environments (Vercel)
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:////tmp/taxi_app.db")
 
 # Configure engine based on database type
+engine = None
 try:
-    if "sqlite" in DATABASE_URL:
-        engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-    elif "postgresql" in DATABASE_URL or "postgres" in DATABASE_URL:
+    if "sqlite" in DATABASE_URL.lower():
+        engine = create_engine(
+            DATABASE_URL,
+            connect_args={"check_same_thread": False},
+            pool_pre_ping=False
+        )
+    elif "postgresql" in DATABASE_URL.lower() or "postgres" in DATABASE_URL.lower():
         # PostgreSQL configuration for serverless (Supabase)
         engine = create_engine(
             DATABASE_URL,
-            pool_pre_ping=True,  # Verify connections before using
-            pool_recycle=300,    # Recycle connections after 5 minutes
-            pool_size=5,         # Connection pool size
-            max_overflow=10      # Max overflow connections
+            pool_pre_ping=True,
+            pool_recycle=300,
+            pool_size=5,
+            max_overflow=10,
+            connect_args={
+                "connect_timeout": 10,
+                "options": "-c statement_timeout=10000"
+            }
         )
     else:
         engine = create_engine(DATABASE_URL)
+
+    print(f"✓ Database engine created successfully", file=sys.stderr)
+
 except Exception as e:
+    print(f"⚠ Warning: Could not create database engine: {e}", file=sys.stderr)
+    print(f"⚠ Using in-memory SQLite as fallback", file=sys.stderr)
     # Fallback to in-memory SQLite if database connection fails
-    print(f"Warning: Could not connect to database: {e}")
-    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
+    try:
+        engine = create_engine(
+            "sqlite:///:memory:",
+            connect_args={"check_same_thread": False}
+        )
+    except Exception as e2:
+        print(f"✗ CRITICAL: Could not create fallback engine: {e2}", file=sys.stderr)
+        # Last resort: create engine without testing connection
+        engine = create_engine("sqlite:///:memory:")
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -45,4 +72,8 @@ def get_db():
 
 def init_db():
     """Initialize database tables"""
-    Base.metadata.create_all(bind=engine)
+    try:
+        Base.metadata.create_all(bind=engine)
+        print(f"✓ Database tables initialized", file=sys.stderr)
+    except Exception as e:
+        print(f"⚠ Warning: Could not initialize tables: {e}", file=sys.stderr)

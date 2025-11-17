@@ -1,30 +1,45 @@
+import sys
+import os
+
+# Set up basic imports first
 from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime, timedelta
-import os
 import shutil
 import json
 
-import crud
-import models
-import schemas
-import services
-import auth
-from database import get_db, init_db, engine
+print("✓ FastAPI imported", file=sys.stderr)
 
+# Import application modules with error handling
+try:
+    import crud
+    import models
+    import schemas
+    import services
+    import auth
+    from database import get_db, init_db, engine
+    print("✓ Application modules imported", file=sys.stderr)
+except Exception as e:
+    print(f"✗ Error importing modules: {e}", file=sys.stderr)
+    import traceback
+    traceback.print_exc()
+    raise
+
+# Create FastAPI application
 app = FastAPI(title="Voss Taxi Web App", version="1.0.0")
+print("✓ FastAPI app created", file=sys.stderr)
 
-# Initialize database tables (safe for serverless)
-# This will be skipped if DATABASE_URL is not properly configured
+# Initialize database tables (non-blocking)
 try:
     models.Base.metadata.create_all(bind=engine)
-except Exception:
-    # Tables may already exist, database may be initializing, or env vars not set yet
-    # This is non-fatal - database will be checked on first request
-    pass
+    print("✓ Database tables checked/created", file=sys.stderr)
+except Exception as e:
+    # Tables may already exist or database may be unavailable
+    # This is non-fatal - log but continue
+    print(f"⚠ Database init warning: {e}", file=sys.stderr)
 
 # CORS middleware
 ALLOWED_ORIGINS = os.getenv(
