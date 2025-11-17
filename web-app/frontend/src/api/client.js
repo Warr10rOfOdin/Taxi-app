@@ -9,8 +9,26 @@ const apiClient = axios.create({
   },
 });
 
+// Add token to requests
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 // API methods
 export const api = {
+  // Authentication
+  login: (username, password) => apiClient.post('/api/auth/login', { username, password }),
+  register: (userData) => apiClient.post('/api/auth/register', userData),
+  getCurrentUser: () => apiClient.get('/api/auth/me'),
+  logout: () => apiClient.post('/api/auth/logout'),
+
   // Companies
   getCompanies: () => apiClient.get('/api/companies'),
   getCompany: (id) => apiClient.get(`/api/companies/${id}`),

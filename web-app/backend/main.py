@@ -12,7 +12,9 @@ import crud
 import models
 import schemas
 import services
+import auth
 from database import get_db, init_db, engine
+from datetime import timedelta
 
 # Initialize database
 models.Base.metadata.create_all(bind=engine)
@@ -44,6 +46,55 @@ os.makedirs(PDF_DIR, exist_ok=True)
 @app.get("/")
 def read_root():
     return {"status": "ok", "message": "Voss Taxi Web App API"}
+
+
+# ========== Authentication Endpoints ==========
+@app.post("/api/auth/register", response_model=schemas.User)
+def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    """Register a new user"""
+    # Check if username already exists
+    db_user = auth.get_user_by_username(db, username=user.username)
+    if db_user:
+        raise HTTPException(status_code=400, detail="Username already registered")
+
+    # Check if email already exists
+    db_user = auth.get_user_by_email(db, email=user.email)
+    if db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    # Create new user
+    return auth.create_user(db=db, user=user)
+
+
+@app.post("/api/auth/login", response_model=schemas.Token)
+def login(login_data: schemas.LoginRequest, db: Session = Depends(get_db)):
+    """Login and get access token"""
+    user = auth.authenticate_user(db, login_data.username, login_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    access_token_expires = timedelta(minutes=auth.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = auth.create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@app.get("/api/auth/me", response_model=schemas.User)
+async def get_current_user_info(current_user: models.User = Depends(auth.get_current_active_user)):
+    """Get current logged-in user information"""
+    return current_user
+
+
+@app.post("/api/auth/logout")
+async def logout():
+    """Logout (client should delete token)"""
+    return {"message": "Successfully logged out"}
 
 
 # ========== Company Endpoints ==========
