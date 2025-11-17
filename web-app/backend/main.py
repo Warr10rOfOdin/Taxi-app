@@ -4,7 +4,6 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime, timedelta
-from mangum import Mangum
 import os
 import shutil
 import json
@@ -510,9 +509,6 @@ def generate_salary_pdf(report_id: int, db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating PDF: {str(e)}")
 
-
-# Vercel serverless handler
-handler = Mangum(app)
 
 if __name__ == "__main__":
     import uvicorn
