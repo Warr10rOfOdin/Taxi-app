@@ -3,9 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from typing import List, Optional
+from datetime import datetime, timedelta
+from mangum import Mangum
 import os
 import shutil
-from datetime import datetime
 import json
 
 import crud
@@ -14,16 +15,17 @@ import schemas
 import services
 import auth
 from database import get_db, init_db, engine
-from datetime import timedelta
 
 app = FastAPI(title="Voss Taxi Web App", version="1.0.0")
 
 # Initialize database tables (safe for serverless)
+# This will be skipped if DATABASE_URL is not properly configured
 try:
     models.Base.metadata.create_all(bind=engine)
-except Exception as e:
-    print(f"Warning: Could not initialize database tables: {e}")
-    # Tables may already exist or database may be initializing
+except Exception:
+    # Tables may already exist, database may be initializing, or env vars not set yet
+    # This is non-fatal - database will be checked on first request
+    pass
 
 # CORS middleware
 ALLOWED_ORIGINS = os.getenv(
@@ -510,7 +512,6 @@ def generate_salary_pdf(report_id: int, db: Session = Depends(get_db)):
 
 
 # Vercel serverless handler
-from mangum import Mangum
 handler = Mangum(app)
 
 if __name__ == "__main__":

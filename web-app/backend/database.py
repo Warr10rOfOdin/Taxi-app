@@ -6,22 +6,28 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./taxi_app.db")
+# Use /tmp for SQLite in serverless environments (Vercel)
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:////tmp/taxi_app.db")
 
 # Configure engine based on database type
-if "sqlite" in DATABASE_URL:
-    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-elif "postgresql" in DATABASE_URL or "postgres" in DATABASE_URL:
-    # PostgreSQL configuration for serverless (Supabase)
-    engine = create_engine(
-        DATABASE_URL,
-        pool_pre_ping=True,  # Verify connections before using
-        pool_recycle=300,    # Recycle connections after 5 minutes
-        pool_size=5,         # Connection pool size
-        max_overflow=10      # Max overflow connections
-    )
-else:
-    engine = create_engine(DATABASE_URL)
+try:
+    if "sqlite" in DATABASE_URL:
+        engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+    elif "postgresql" in DATABASE_URL or "postgres" in DATABASE_URL:
+        # PostgreSQL configuration for serverless (Supabase)
+        engine = create_engine(
+            DATABASE_URL,
+            pool_pre_ping=True,  # Verify connections before using
+            pool_recycle=300,    # Recycle connections after 5 minutes
+            pool_size=5,         # Connection pool size
+            max_overflow=10      # Max overflow connections
+        )
+    else:
+        engine = create_engine(DATABASE_URL)
+except Exception as e:
+    # Fallback to in-memory SQLite if database connection fails
+    print(f"Warning: Could not connect to database: {e}")
+    engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
