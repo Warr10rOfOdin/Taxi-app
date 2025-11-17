@@ -2,11 +2,27 @@
   "version": 2,
   "builds": [
     {
+      "src": "diagnostic.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "index.py",
+      "use": "@vercel/python"
+    },
+    {
       "src": "api_minimal.py",
       "use": "@vercel/python"
     }
   ],
   "routes": [
+    {
+      "src": "/diagnostic",
+      "dest": "diagnostic.py"
+    },
+    {
+      "src": "/test",
+      "dest": "index.py"
+    },
     {
       "src": "/(.*)",
       "dest": "api_minimal.py"
