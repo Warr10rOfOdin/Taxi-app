@@ -1,0 +1,41 @@
+# Environment files with secrets - DO NOT COMMIT
+.env
+.env.local
+.env.*.local
+.env.backend.example
+.env.frontend.example
+DEPLOY_NOW.md
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+uploads/
+pdfs/
+/tmp/
