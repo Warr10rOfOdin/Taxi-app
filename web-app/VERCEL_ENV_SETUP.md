@@ -16,7 +16,7 @@ ALLOWED_ORIGINS=https://voss-taxi.app,https://www.voss-taxi.app,https://voss-tax
 ```
 
 ```
-DATABASE_URL=postgresql://postgres.xpqxrvzfwokbzvjdvduc:Toni19881209@aws-0-eu-central-1.pooler.supabase.com:6543/postgres
+DATABASE_URL=postgresql://postgres.eqclrxoeunhwlslazaas:iSwOn2PeuP7IjAqn@aws-1-eu-north-1.pooler.supabase.com:6543/postgres?sslmode=require
 ```
 
 ```
