@@ -1,0 +1,8 @@
+*.pyc
+__pycache__/
+venv/
+.env
+taxi_app.db
+uploads/
+pdfs/
+.pytest_cache/
