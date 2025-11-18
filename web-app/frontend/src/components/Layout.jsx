@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Home, FileText, DollarSign, Settings, Moon, Sun, CreditCard } from 'lucide-react';
+import { Menu, X, Home, FileText, DollarSign, Settings, Moon, Sun, CreditCard, LogOut, User } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { darkMode, toggleDarkMode } = useTheme();
+  const { user, logout } = useAuth();
   const location = useLocation();
 
   const navigation = [
@@ -70,8 +72,23 @@ export default function Layout({ children }) {
             })}
           </nav>
 
-          {/* Settings */}
-          <div className="border-t border-gray-200 dark:border-gray-700 p-4">
+          {/* User info and settings */}
+          <div className="border-t border-gray-200 dark:border-gray-700 p-4 space-y-2">
+            {/* User info */}
+            <div className="flex items-center gap-3 px-3 py-2 text-sm">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-100 dark:bg-primary-900">
+                <User className="h-4 w-4 text-primary-600 dark:text-primary-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                  {user?.full_name || user?.username}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                  {user?.email}
+                </p>
+              </div>
+            </div>
+
             {/* Dark mode toggle */}
             <button
               onClick={toggleDarkMode}
@@ -88,6 +105,15 @@ export default function Layout({ children }) {
                   Mørk modus
                 </>
               )}
+            </button>
+
+            {/* Logout button */}
+            <button
+              onClick={logout}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+            >
+              <LogOut className="h-5 w-5" />
+              Logg ut
             </button>
           </div>
         </div>

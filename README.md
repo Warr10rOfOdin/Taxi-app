@@ -1,73 +1,74 @@
 # Voss Taxi Web Application
 
-Modern web application for managing taxi shift reports and salary calculations.
+Modern, secure web application for managing taxi shift reports and salary calculations with user authentication.
 
-## 🚀 Quick Deploy to voss-taxi.app
+## 🔐 Authentication Required
 
-Your application is ready to deploy with:
-- **Domain:** voss-taxi.app
-- **Database:** Supabase (connected in Vercel)
-- **Hosting:** Vercel
+All users must register and log in to access the application. The app includes:
+- User registration and login
+- JWT token-based authentication
+- Session management
+- Protected routes
 
-### Deploy Now (15 minutes)
+## 🚀 Quick Start
 
-Follow this guide: **[DEPLOYMENT_GUIDE_voss-taxi-app.md](./DEPLOYMENT_GUIDE_voss-taxi-app.md)**
+### Local Development
 
-Or follow these quick steps:
+See the complete **[SETUP_CHECKLIST.md](./SETUP_CHECKLIST.md)** for step-by-step instructions.
 
-#### 1. Deploy Backend
-1. Import to Vercel: [vercel.com/new](https://vercel.com/new)
-2. Root Directory: `web-app/backend`
-3. Add environment variables (see [ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md))
-4. Deploy
-5. Add custom domain: `api.voss-taxi.app`
+**Quick overview:**
 
-#### 2. Deploy Frontend
-1. Import to Vercel again: [vercel.com/new](https://vercel.com/new)
-2. Root Directory: `web-app/frontend`
-3. Add env var: `VITE_API_URL=https://api.voss-taxi.app`
-4. Deploy
-5. Add custom domain: `voss-taxi.app`
-
-#### 3. Configure DNS
-
-Add these records to your domain registrar:
-
-| Type  | Name | Value                 |
-|-------|------|-----------------------|
-| A     | @    | 76.76.21.21          |
-| CNAME | www  | cname.vercel-dns.com |
-| CNAME | api  | cname.vercel-dns.com |
-
-Done! Visit https://voss-taxi.app 🎉
-
-## 📚 Documentation
-
-- **[DEPLOYMENT_GUIDE_voss-taxi-app.md](./DEPLOYMENT_GUIDE_voss-taxi-app.md)** - Complete deployment guide
-- **[ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md)** - All environment variables explained
-- **[VERCEL_DEPLOYMENT.md](./VERCEL_DEPLOYMENT.md)** - General Vercel deployment guide
-- **[web-app/README.md](./web-app/README.md)** - Technical documentation
-- **[web-app/CONVERSION_SUMMARY.md](./web-app/CONVERSION_SUMMARY.md)** - Desktop to web conversion details
-
-## 🛠 Local Development
-
-### Backend
+1. **Start Backend:**
 ```bash
 cd web-app/backend
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-uvicorn main:app --reload
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### Frontend
+2. **Start Frontend:**
 ```bash
 cd web-app/frontend
 npm install
 npm run dev
 ```
 
-Visit http://localhost:3000
+3. **Access the app:** http://localhost:3000
+4. **Create your first account** via the registration page
+
+### Production Deployment
+
+For production deployment to Vercel, see **[SETUP_CHECKLIST.md](./SETUP_CHECKLIST.md)** which includes:
+- Database setup (Supabase)
+- Environment variables configuration
+- Backend and frontend deployment
+- Domain configuration
+- First user registration
+
+## 📚 Documentation
+
+- **[SETUP_CHECKLIST.md](./SETUP_CHECKLIST.md)** - Complete setup and verification checklist
+- **[ENVIRONMENT_VARIABLES.md](./ENVIRONMENT_VARIABLES.md)** - Environment variables reference
+- **[web-app/AUTH_GUIDE.md](./web-app/AUTH_GUIDE.md)** - Authentication system guide
+- **[web-app/README.md](./web-app/README.md)** - Technical documentation
+
+**Archived guides** (for reference only): See `docs-archive/` folder
+
+## 🛠 Development Workflow
+
+1. **Backend** runs on `http://localhost:8000`
+   - API docs at `http://localhost:8000/docs`
+   - Health check at `http://localhost:8000`
+
+2. **Frontend** runs on `http://localhost:3000` (or `http://localhost:5173` with Vite)
+   - Automatically connects to backend
+   - Hot reload enabled
+
+3. **First Time:**
+   - Register a new account
+   - Start adding company info, drivers, and bank accounts in Settings
+   - Create shift and salary reports
 
 ## ✨ Features
 
