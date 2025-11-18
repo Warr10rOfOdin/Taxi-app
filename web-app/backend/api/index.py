@@ -1,20 +1,28 @@
 """
 Main API entry point - FastAPI with authentication and database
-Fault-tolerant version for debugging Vercel deployment
+Fault-tolerant version with enhanced traceback logging for Vercel debugging
 """
 import sys
 import os
 import traceback
 
-# Add parent directory to path FIRST
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+print("=" * 80, file=sys.stderr)
+print("🚀 Voss Taxi API - Starting initialization...", file=sys.stderr)
+print("=" * 80, file=sys.stderr)
 
-print("=" * 60, file=sys.stderr)
-print("Starting Voss Taxi API (Vercel Serverless)", file=sys.stderr)
-print(f"Python version: {sys.version}", file=sys.stderr)
-print(f"Working directory: {os.getcwd()}", file=sys.stderr)
-print(f"sys.path: {sys.path[:3]}", file=sys.stderr)
-print("=" * 60, file=sys.stderr)
+# Add parent directory to path FIRST
+try:
+    parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    sys.path.insert(0, parent_dir)
+    print(f"✅ Added parent directory to path: {parent_dir}", file=sys.stderr)
+except Exception as e:
+    print(f"🔥 Failed to add parent directory to path: {e}", file=sys.stderr)
+    traceback.print_exc()
+
+print(f"📍 Python version: {sys.version}", file=sys.stderr)
+print(f"📍 Working directory: {os.getcwd()}", file=sys.stderr)
+print(f"📍 sys.path (first 3): {sys.path[:3]}", file=sys.stderr)
+print(f"📍 __file__: {__file__}", file=sys.stderr)
 
 # Track what succeeded/failed
 initialization_status = {
@@ -25,80 +33,124 @@ initialization_status = {
 import_errors = []
 
 # Import FastAPI basics
+print("-" * 80, file=sys.stderr)
+print("🔧 Step 1: Importing FastAPI core modules...", file=sys.stderr)
 try:
-    print("→ Importing FastAPI...", file=sys.stderr)
     from fastapi import FastAPI, Depends, HTTPException
+    print("  ✅ FastAPI imported", file=sys.stderr)
+
     from fastapi.middleware.cors import CORSMiddleware
+    print("  ✅ CORSMiddleware imported", file=sys.stderr)
+
     from mangum import Mangum
-    print("✓ FastAPI imports successful", file=sys.stderr)
+    print("  ✅ Mangum imported", file=sys.stderr)
+
+    print("✅ All FastAPI imports successful!", file=sys.stderr)
     initialization_status["fastapi"] = "success"
+
 except Exception as e:
     error_msg = f"Failed to import FastAPI: {e}"
-    print(f"✗ {error_msg}", file=sys.stderr)
+    print(f"🔥 {error_msg}", file=sys.stderr)
+    print("🔥 Full traceback:", file=sys.stderr)
     traceback.print_exc()
     initialization_status["fastapi"] = error_msg
     import_errors.append(error_msg)
     # Don't raise - try to continue
 
 # Import database modules with error handling
+print("-" * 80, file=sys.stderr)
+print("🔧 Step 2: Importing database modules...", file=sys.stderr)
 database_available = False
 try:
-    print("→ Importing database modules...", file=sys.stderr)
     from sqlalchemy.orm import Session
+    print("  ✅ SQLAlchemy Session imported", file=sys.stderr)
+
     from datetime import timedelta
+    print("  ✅ datetime.timedelta imported", file=sys.stderr)
+
     from database import get_db, engine
+    print("  ✅ database.get_db and engine imported", file=sys.stderr)
+
     import models
+    print("  ✅ models imported", file=sys.stderr)
+
     import schemas
+    print("  ✅ schemas imported", file=sys.stderr)
+
     import auth
-    print("✓ Database modules imported", file=sys.stderr)
+    print("  ✅ auth imported", file=sys.stderr)
+
+    print("✅ All database modules imported successfully!", file=sys.stderr)
     initialization_status["database"] = "success"
     database_available = True
+
 except Exception as e:
     error_msg = f"Failed to import database modules: {e}"
-    print(f"⚠ {error_msg}", file=sys.stderr)
+    print(f"🔥 {error_msg}", file=sys.stderr)
+    print("🔥 Full traceback:", file=sys.stderr)
     traceback.print_exc()
     initialization_status["database"] = error_msg
     import_errors.append(error_msg)
-    # Don't raise - continue without database
+    print("⚠️  Continuing without database support...", file=sys.stderr)
 
 # Create FastAPI app
-app = FastAPI(
-    title="Voss Taxi Web App API",
-    version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc"
-)
+print("-" * 80, file=sys.stderr)
+print("🔧 Step 3: Creating FastAPI application...", file=sys.stderr)
+try:
+    app = FastAPI(
+        title="Voss Taxi Web App API",
+        version="1.0.0",
+        docs_url="/docs",
+        redoc_url="/redoc"
+    )
+    print("✅ FastAPI app created", file=sys.stderr)
+except Exception as e:
+    print(f"🔥 Failed to create FastAPI app: {e}", file=sys.stderr)
+    traceback.print_exc()
+    raise
 
-# CORS - be permissive for now
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"] if "*" in ALLOWED_ORIGINS else ALLOWED_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-print(f"✓ CORS configured: {ALLOWED_ORIGINS}", file=sys.stderr)
+# CORS configuration
+print("🔧 Step 4: Configuring CORS...", file=sys.stderr)
+try:
+    ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"] if "*" in ALLOWED_ORIGINS else ALLOWED_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    print(f"✅ CORS configured: {ALLOWED_ORIGINS}", file=sys.stderr)
+except Exception as e:
+    print(f"🔥 Failed to configure CORS: {e}", file=sys.stderr)
+    traceback.print_exc()
 
 # Database initialization - non-blocking
+print("-" * 80, file=sys.stderr)
+print("🔧 Step 5: Initializing database tables...", file=sys.stderr)
 if database_available:
     try:
-        print("→ Initializing database tables...", file=sys.stderr)
         models.Base.metadata.create_all(bind=engine)
-        print("✓ Database tables ready", file=sys.stderr)
+        print("✅ Database tables created/verified", file=sys.stderr)
         initialization_status["database_tables"] = "success"
     except Exception as e:
         error_msg = f"Database initialization failed: {e}"
-        print(f"⚠ {error_msg}", file=sys.stderr)
+        print(f"🔥 {error_msg}", file=sys.stderr)
+        print("🔥 Full traceback:", file=sys.stderr)
+        traceback.print_exc()
         initialization_status["database_tables"] = error_msg
 else:
+    print("⚠️  Skipping database initialization (database unavailable)", file=sys.stderr)
     initialization_status["database_tables"] = "skipped (database unavailable)"
 
-print("=" * 60, file=sys.stderr)
-print("API initialization complete!", file=sys.stderr)
-print(f"Status: {initialization_status}", file=sys.stderr)
-print("=" * 60, file=sys.stderr)
+print("=" * 80, file=sys.stderr)
+print("✅ API initialization complete!", file=sys.stderr)
+print(f"📊 Final Status: {initialization_status}", file=sys.stderr)
+if import_errors:
+    print(f"⚠️  Errors encountered: {len(import_errors)}", file=sys.stderr)
+    for i, err in enumerate(import_errors, 1):
+        print(f"   {i}. {err}", file=sys.stderr)
+print("=" * 80, file=sys.stderr)
 
 
 @app.get("/")
@@ -157,10 +209,12 @@ def debug_info():
             "VERCEL": os.getenv("VERCEL"),
             "DATABASE_URL": "***" if os.getenv("DATABASE_URL") else None,
             "POSTGRES_URL": "***" if os.getenv("POSTGRES_URL") else None,
+            "POSTGRES_PRISMA_URL": "***" if os.getenv("POSTGRES_PRISMA_URL") else None,
         },
         "initialization_status": initialization_status,
         "import_errors": import_errors,
-        "database_available": database_available
+        "database_available": database_available,
+        "files_in_directory": os.listdir(os.getcwd()) if os.path.exists(os.getcwd()) else []
     }
 
 
@@ -173,6 +227,8 @@ async def options_handler(path: str):
 
 # ========== Authentication Endpoints (only if database available) ==========
 if database_available:
+    print("🔧 Registering authentication endpoints...", file=sys.stderr)
+
     @app.post("/api/auth/register", response_model=schemas.User)
     def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
         """Register a new user"""
@@ -217,6 +273,21 @@ if database_available:
         """Logout (client should delete token)"""
         return {"message": "Successfully logged out"}
 
+    print("✅ Authentication endpoints registered", file=sys.stderr)
+else:
+    print("⚠️  Skipping authentication endpoints (database unavailable)", file=sys.stderr)
+
 
 # Mangum handler for Vercel
-handler = Mangum(app, lifespan="off")
+print("🔧 Creating Mangum handler for Vercel...", file=sys.stderr)
+try:
+    handler = Mangum(app, lifespan="off")
+    print("✅ Mangum handler created successfully", file=sys.stderr)
+except Exception as e:
+    print(f"🔥 Failed to create Mangum handler: {e}", file=sys.stderr)
+    traceback.print_exc()
+    raise
+
+print("=" * 80, file=sys.stderr)
+print("🎉 API module loaded successfully!", file=sys.stderr)
+print("=" * 80, file=sys.stderr)
