@@ -4,6 +4,7 @@ import Layout from './components/Layout';
 import Home from './pages/Home';
 import ShiftReport from './pages/ShiftReport';
 import SalaryReport from './pages/SalaryReport';
+import TransactionReport from './pages/TransactionReport';
 import Settings from './pages/Settings';
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/shift-report" element={<ShiftReport />} />
             <Route path="/salary-report" element={<SalaryReport />} />
+            <Route path="/transaction-report" element={<TransactionReport />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>
         </Layout>
