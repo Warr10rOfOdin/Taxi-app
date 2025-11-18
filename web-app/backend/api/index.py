@@ -47,9 +47,9 @@ def read_root():
         "message": "Voss Taxi Web App API",
         "version": "1.0.0",
         "endpoints": {
-            "register": "POST /api/auth/register",
-            "login": "POST /api/auth/login",
-            "me": "GET /api/auth/me",
+            "register": "POST /auth/register",
+            "login": "POST /auth/login",
+            "me": "GET /auth/me",
             "health": "GET /health"
         }
     }
@@ -58,6 +58,13 @@ def read_root():
 @app.get("/health")
 def health_check():
     return {"status": "healthy", "database": "connected"}
+
+
+# Handle OPTIONS for CORS preflight
+@app.options("/{path:path}")
+async def options_handler(path: str):
+    """Handle CORS preflight requests"""
+    return {"message": "OK"}
 
 
 # ========== Authentication Endpoints ==========
