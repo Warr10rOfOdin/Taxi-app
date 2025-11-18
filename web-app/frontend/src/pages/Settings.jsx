@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Building2, Users, Landmark, FileStack, Plus, Edit, Trash2 } from 'lucide-react';
-import { api } from '../api/client';
+import {
+  drivers as driverStorage,
+  companies as companyStorage,
+  bankAccounts as bankStorage,
+  templates as templateStorage
+} from '../storage/localStorage';
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState('company');
@@ -23,21 +28,17 @@ export default function Settings() {
     loadData();
   }, [activeTab]);
 
-  const loadData = async () => {
+  const loadData = () => {
     setLoading(true);
     try {
       if (activeTab === 'company') {
-        const { data } = await api.getCompanies();
-        setCompanies(data);
+        setCompanies(companyStorage.getAll());
       } else if (activeTab === 'drivers') {
-        const { data } = await api.getDrivers();
-        setDrivers(data);
+        setDrivers(driverStorage.getAll());
       } else if (activeTab === 'banks') {
-        const { data } = await api.getBankAccounts();
-        setBankAccounts(data);
+        setBankAccounts(bankStorage.getAll());
       } else if (activeTab === 'templates') {
-        const { data } = await api.getTemplates();
-        setTemplates(data);
+        setTemplates(templateStorage.getAll());
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -46,14 +47,14 @@ export default function Settings() {
     }
   };
 
-  const handleDelete = async (id, type) => {
+  const handleDelete = (id, type) => {
     if (!confirm('Er du sikker på at du vil slette dette?')) return;
 
     try {
-      if (type === 'company') await api.deleteCompany(id);
-      else if (type === 'driver') await api.deleteDriver(id);
-      else if (type === 'bank') await api.deleteBankAccount(id);
-      else if (type === 'template') await api.deleteTemplate(id);
+      if (type === 'company') companyStorage.delete(id);
+      else if (type === 'driver') driverStorage.delete(id);
+      else if (type === 'bank') bankStorage.delete(id);
+      else if (type === 'template') templateStorage.delete(id);
 
       loadData();
     } catch (error) {
@@ -357,32 +358,32 @@ function TemplatesTab({ templates, onAdd, onEdit, onDelete, loading }) {
 function Modal({ type, item, onClose, onSave }) {
   const [formData, setFormData] = useState(item || {});
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     try {
       if (type === 'company') {
         if (item) {
-          await api.updateCompany(item.id, formData);
+          companyStorage.update(item.id, formData);
         } else {
-          await api.createCompany(formData);
+          companyStorage.create(formData);
         }
       } else if (type === 'drivers') {
         if (item) {
-          await api.updateDriver(item.id, formData);
+          driverStorage.update(item.id, formData);
         } else {
-          await api.createDriver(formData);
+          driverStorage.create(formData);
         }
       } else if (type === 'banks') {
         if (item) {
-          await api.updateBankAccount(item.id, formData);
+          bankStorage.update(item.id, formData);
         } else {
-          await api.createBankAccount(formData);
+          bankStorage.create(formData);
         }
       } else if (type === 'templates') {
         if (item) {
-          await api.updateTemplate(item.id, formData);
+          templateStorage.update(item.id, formData);
         } else {
-          await api.createTemplate(formData);
+          templateStorage.create(formData);
         }
       }
       onSave();
