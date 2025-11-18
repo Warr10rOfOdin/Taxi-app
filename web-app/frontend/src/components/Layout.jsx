@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Home, FileText, DollarSign, Settings, Moon, Sun } from 'lucide-react';
+import { Menu, X, Home, FileText, DollarSign, Settings, Moon, Sun, CreditCard } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 export default function Layout({ children }) {
@@ -12,6 +12,7 @@ export default function Layout({ children }) {
     { name: 'Hjem', path: '/', icon: Home },
     { name: 'Skiftrapport', path: '/shift-report', icon: FileText },
     { name: 'Lønnsrapport', path: '/salary-report', icon: DollarSign },
+    { name: 'Transaksjonsrapport', path: '/transaction-report', icon: CreditCard },
     { name: 'Innstillinger', path: '/settings', icon: Settings },
   ];
 

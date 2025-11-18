@@ -7,6 +7,7 @@ const STORAGE_KEYS = {
   TEMPLATES: 'taxi_templates',
   SHIFT_REPORTS: 'taxi_shift_reports',
   SALARY_REPORTS: 'taxi_salary_reports',
+  TRANSACTION_REPORTS: 'taxi_transaction_reports',
 };
 
 // Helper functions
@@ -230,6 +231,37 @@ export const salaryReports = {
   delete: (id) => {
     const reports = getItem(STORAGE_KEYS.SALARY_REPORTS).filter(r => r.id !== id);
     setItem(STORAGE_KEYS.SALARY_REPORTS, reports);
+  },
+};
+
+// Transaction Reports
+export const transactionReports = {
+  getAll: () => getItem(STORAGE_KEYS.TRANSACTION_REPORTS),
+  getById: (id) => getItem(STORAGE_KEYS.TRANSACTION_REPORTS).find(r => r.id === id),
+  create: (report) => {
+    const reports = getItem(STORAGE_KEYS.TRANSACTION_REPORTS);
+    const newReport = {
+      ...report,
+      id: generateId(),
+      created_at: new Date().toISOString()
+    };
+    reports.push(newReport);
+    setItem(STORAGE_KEYS.TRANSACTION_REPORTS, reports);
+    return newReport;
+  },
+  update: (id, report) => {
+    const reports = getItem(STORAGE_KEYS.TRANSACTION_REPORTS);
+    const index = reports.findIndex(r => r.id === id);
+    if (index !== -1) {
+      reports[index] = { ...reports[index], ...report };
+      setItem(STORAGE_KEYS.TRANSACTION_REPORTS, reports);
+      return reports[index];
+    }
+    return null;
+  },
+  delete: (id) => {
+    const reports = getItem(STORAGE_KEYS.TRANSACTION_REPORTS).filter(r => r.id !== id);
+    setItem(STORAGE_KEYS.TRANSACTION_REPORTS, reports);
   },
 };
 
