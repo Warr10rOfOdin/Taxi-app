@@ -12,6 +12,7 @@ uploads/
 pdfs/
 .env
 .DS_Store
+# Exclude heavy modules not needed for serverless auth
 main.py
 services.py
 crud.py
@@ -19,7 +20,4 @@ api.py
 api_minimal.py
 create_tables.py
 diagnostic.py
-index.py
-requirements.txt
-requirements-minimal.txt
-.vercelignore
+# Don't exclude api/index.py - that's what we need!
