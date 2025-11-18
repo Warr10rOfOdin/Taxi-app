@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Upload, FileText, Download, Eye } from 'lucide-react';
-import { api } from '../api/client';
+import Papa from 'papaparse';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import { drivers as driverStorage, shiftReports } from '../storage/localStorage';
 
 export default function ShiftReport() {
   const [file, setFile] = useState(null);
@@ -15,58 +18,87 @@ export default function ShiftReport() {
     loadReports();
   }, []);
 
-  const loadDrivers = async () => {
+  const loadDrivers = () => {
     try {
-      const { data } = await api.getDrivers();
-      setDrivers(data);
+      setDrivers(driverStorage.getAll());
     } catch (error) {
       console.error('Error loading drivers:', error);
     }
   };
 
-  const loadReports = async () => {
+  const loadReports = () => {
     try {
-      const { data } = await api.getShiftReports();
-      setReports(data);
+      setReports(shiftReports.getAll());
     } catch (error) {
       console.error('Error loading reports:', error);
     }
   };
 
-  const handleFileChange = async (e) => {
+  const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (!selectedFile) return;
 
     setFile(selectedFile);
 
-    // Parse file for preview
-    try {
-      const { data } = await api.parseFile(selectedFile);
-      setPreview(data);
-    } catch (error) {
-      console.error('Error parsing file:', error);
-      alert('Feil ved parsing av fil');
-    }
+    // Parse CSV file for preview
+    Papa.parse(selectedFile, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        if (results.data && results.data.length > 0) {
+          setPreview({
+            row_count: results.data.length,
+            columns: Object.keys(results.data[0]),
+            preview: results.data.slice(0, 5), // Show first 5 rows
+            fullData: results.data // Store full data for upload
+          });
+        }
+      },
+      error: (error) => {
+        console.error('Error parsing file:', error);
+        alert('Feil ved parsing av fil');
+      }
+    });
   };
 
-  const handleUpload = async () => {
-    if (!file) {
+  const handleUpload = () => {
+    if (!file || !preview) {
       alert('Velg en fil først');
       return;
     }
 
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      if (selectedDriver) {
-        formData.append('driver_id', selectedDriver);
-      }
+      // Calculate summary from the data
+      const data = preview.fullData || [];
 
-      await api.createShiftReport(formData);
+      // Try to find relevant columns for calculations
+      const kontantCol = data.length > 0 ? Object.keys(data[0]).find(k => k.toLowerCase().includes('kontant')) : null;
+      const kredittCol = data.length > 0 ? Object.keys(data[0]).find(k => k.toLowerCase().includes('kreditt') && !k.toLowerCase().includes('utlegg')) : null;
+      const bomturCol = data.length > 0 ? Object.keys(data[0]).find(k => k.toLowerCase().includes('bomtur')) : null;
+      const totalCol = data.length > 0 ? Object.keys(data[0]).find(k => k.toLowerCase().includes('total') && k.toLowerCase().includes('kroner')) : null;
+
+      const summary = {
+        total_kontant: kontantCol ? data.reduce((sum, row) => sum + (parseFloat(row[kontantCol]) || 0), 0) : 0,
+        total_kreditt: kredittCol ? data.reduce((sum, row) => sum + (parseFloat(row[kredittCol]) || 0), 0) : 0,
+        total_bomtur: bomturCol ? data.reduce((sum, row) => sum + (parseFloat(row[bomturCol]) || 0), 0) : 0,
+        grand_total: totalCol ? data.reduce((sum, row) => sum + (parseFloat(row[totalCol]) || 0), 0) : 0,
+      };
+
+      // Create report
+      const report = {
+        file_name: file.name,
+        driver_id: selectedDriver || null,
+        data: preview.fullData,
+        columns: preview.columns,
+        summary: summary
+      };
+
+      shiftReports.create(report);
       alert('Rapport opprettet!');
       setFile(null);
       setPreview(null);
+      setSelectedDriver('');
       loadReports();
     } catch (error) {
       console.error('Error uploading:', error);
@@ -76,16 +108,58 @@ export default function ShiftReport() {
     }
   };
 
-  const handleGeneratePDF = async (reportId) => {
+  const handleGeneratePDF = (reportId) => {
     try {
-      const response = await api.generateShiftPDF(reportId);
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `skiftrapport_${reportId}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+      const report = shiftReports.getById(reportId);
+      if (!report) {
+        alert('Rapport ikke funnet');
+        return;
+      }
+
+      // Create PDF
+      const doc = new jsPDF('l', 'mm', 'a4'); // Landscape orientation
+
+      // Add title
+      doc.setFontSize(16);
+      doc.text('Skiftrapport', 14, 15);
+
+      // Add metadata
+      doc.setFontSize(10);
+      doc.text(`Fil: ${report.file_name}`, 14, 22);
+      doc.text(`Opprettet: ${new Date(report.created_at).toLocaleDateString('no-NO')}`, 14, 27);
+
+      // Add summary if available
+      if (report.summary) {
+        let yPos = 35;
+        doc.setFontSize(12);
+        doc.text('Sammendrag:', 14, yPos);
+        yPos += 5;
+        doc.setFontSize(10);
+        doc.text(`Kontant: ${report.summary.total_kontant?.toFixed(2)} kr`, 14, yPos);
+        yPos += 5;
+        doc.text(`Kreditt: ${report.summary.total_kreditt?.toFixed(2)} kr`, 14, yPos);
+        yPos += 5;
+        doc.text(`Bomtur: ${report.summary.total_bomtur?.toFixed(2)} kr`, 14, yPos);
+        yPos += 5;
+        doc.text(`Totalt: ${report.summary.grand_total?.toFixed(2)} kr`, 14, yPos);
+        yPos += 10;
+
+        // Add table with data
+        if (report.data && report.data.length > 0) {
+          const tableColumns = report.columns.map(col => ({ header: col, dataKey: col }));
+          doc.autoTable({
+            startY: yPos,
+            columns: tableColumns,
+            body: report.data,
+            styles: { fontSize: 8 },
+            headStyles: { fillColor: [66, 139, 202] },
+            margin: { left: 14 },
+          });
+        }
+      }
+
+      // Save PDF
+      doc.save(`skiftrapport_${report.id}.pdf`);
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('Feil ved PDF-generering');
