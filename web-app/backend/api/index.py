@@ -1,63 +1,115 @@
 """
 Main API entry point - FastAPI with authentication and database
+Optimized for Vercel serverless deployment
 """
-from fastapi import FastAPI, Depends, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from mangum import Mangum
-from sqlalchemy.orm import Session
-from datetime import timedelta
-import os
 import sys
+import os
+import traceback
 
-# Add parent directory to path
+# Add parent directory to path FIRST
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from database import get_db, engine
-import models
-import schemas
-import auth
+print("=" * 60, file=sys.stderr)
+print("Starting Voss Taxi API (Vercel Serverless)", file=sys.stderr)
+print("=" * 60, file=sys.stderr)
+
+# Import FastAPI basics
+try:
+    print("→ Importing FastAPI...", file=sys.stderr)
+    from fastapi import FastAPI, Depends, HTTPException
+    from fastapi.middleware.cors import CORSMiddleware
+    from mangum import Mangum
+    print("✓ FastAPI imports successful", file=sys.stderr)
+except Exception as e:
+    print(f"✗ Failed to import FastAPI: {e}", file=sys.stderr)
+    traceback.print_exc()
+    raise
+
+# Import database modules with error handling
+try:
+    print("→ Importing database modules...", file=sys.stderr)
+    from sqlalchemy.orm import Session
+    from datetime import timedelta
+    from database import get_db, engine
+    import models
+    import schemas
+    import auth
+    print("✓ Database modules imported", file=sys.stderr)
+except Exception as e:
+    print(f"✗ Failed to import database modules: {e}", file=sys.stderr)
+    traceback.print_exc()
+    raise
 
 # Create FastAPI app
-app = FastAPI(title="Voss Taxi Web App API", version="1.0.0")
+app = FastAPI(
+    title="Voss Taxi Web App API",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc"
+)
 
-# CORS
+# CORS - be permissive for now
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=["*"] if "*" in ALLOWED_ORIGINS else ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-print(f"✓ Main API initialized with CORS: {ALLOWED_ORIGINS}", file=sys.stderr)
+print(f"✓ CORS configured: {ALLOWED_ORIGINS}", file=sys.stderr)
 
-# Initialize database tables
+# Database initialization - non-blocking
 try:
+    print("→ Initializing database tables...", file=sys.stderr)
     models.Base.metadata.create_all(bind=engine)
-    print(f"✓ Database tables ensured", file=sys.stderr)
+    print("✓ Database tables ready", file=sys.stderr)
 except Exception as e:
-    print(f"⚠ Database init warning: {e}", file=sys.stderr)
+    print(f"⚠ Database warning (non-fatal): {e}", file=sys.stderr)
+
+print("=" * 60, file=sys.stderr)
+print("API initialization complete!", file=sys.stderr)
+print("=" * 60, file=sys.stderr)
 
 
 @app.get("/")
 def read_root():
+    """Root endpoint - health check"""
     return {
         "status": "ok",
         "message": "Voss Taxi Web App API",
         "version": "1.0.0",
+        "deployment": "vercel-serverless",
         "endpoints": {
-            "register": "POST /auth/register",
-            "login": "POST /auth/login",
-            "me": "GET /auth/me",
-            "health": "GET /health"
+            "docs": "GET /docs",
+            "health": "GET /health",
+            "register": "POST /api/auth/register",
+            "login": "POST /api/auth/login",
+            "me": "GET /api/auth/me",
+            "logout": "POST /api/auth/logout"
         }
     }
 
 
 @app.get("/health")
 def health_check():
-    return {"status": "healthy", "database": "connected"}
+    """Health check endpoint"""
+    try:
+        # Test database connection
+        from database import SessionLocal
+        db = SessionLocal()
+        db.execute("SELECT 1")
+        db.close()
+        db_status = "connected"
+    except Exception as e:
+        db_status = f"error: {str(e)}"
+
+    return {
+        "status": "healthy",
+        "database": db_status,
+        "version": "1.0.0"
+    }
 
 
 # Handle OPTIONS for CORS preflight
