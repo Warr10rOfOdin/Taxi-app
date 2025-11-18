@@ -130,9 +130,14 @@ print("-" * 80, file=sys.stderr)
 print("🔧 Step 5: Initializing database tables...", file=sys.stderr)
 if database_available:
     try:
-        models.Base.metadata.create_all(bind=engine)
-        print("✅ Database tables created/verified", file=sys.stderr)
-        initialization_status["database_tables"] = "success"
+        # Check if engine is actually available (might be None if creation failed)
+        if engine is None:
+            print("⚠️  Database engine is None, cannot create tables", file=sys.stderr)
+            initialization_status["database_tables"] = "skipped (engine creation failed)"
+        else:
+            models.Base.metadata.create_all(bind=engine)
+            print("✅ Database tables created/verified", file=sys.stderr)
+            initialization_status["database_tables"] = "success"
     except Exception as e:
         error_msg = f"Database initialization failed: {e}"
         print(f"🔥 {error_msg}", file=sys.stderr)
@@ -186,11 +191,14 @@ def health_check():
     if database_available:
         try:
             # Test database connection
-            from database import SessionLocal
-            db = SessionLocal()
-            db.execute("SELECT 1")
-            db.close()
-            status["database"] = "connected"
+            from database import SessionLocal, engine
+            if engine is None or SessionLocal is None:
+                status["database"] = "engine_not_available"
+            else:
+                db = SessionLocal()
+                db.execute("SELECT 1")
+                db.close()
+                status["database"] = "connected"
         except Exception as e:
             status["database"] = f"error: {str(e)}"
 
