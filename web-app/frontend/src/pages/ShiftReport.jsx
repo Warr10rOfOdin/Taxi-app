@@ -133,7 +133,7 @@ export default function ShiftReport() {
         let yPos = 35;
         doc.setFontSize(12);
         doc.text('Sammendrag:', 14, yPos);
-        yPos += 5;
+        yPos += 6;
         doc.setFontSize(10);
         doc.text(`Kontant: ${report.summary.total_kontant?.toFixed(2)} kr`, 14, yPos);
         yPos += 5;
@@ -144,16 +144,60 @@ export default function ShiftReport() {
         doc.text(`Totalt: ${report.summary.grand_total?.toFixed(2)} kr`, 14, yPos);
         yPos += 10;
 
-        // Add table with data
+        // Add table with data - limit columns and clean data
         if (report.data && report.data.length > 0) {
-          const tableColumns = report.columns.map(col => ({ header: col, dataKey: col }));
+          // Limit to most important columns (max 10)
+          const importantColumns = report.columns.slice(0, 10);
+
+          // Clean and prepare data - limit text length
+          const cleanedData = report.data.map(row => {
+            const cleanRow = {};
+            importantColumns.forEach(col => {
+              const value = row[col];
+              // Truncate long text to prevent overflow
+              if (typeof value === 'string' && value.length > 50) {
+                cleanRow[col] = value.substring(0, 47) + '...';
+              } else {
+                cleanRow[col] = value || '';
+              }
+            });
+            return cleanRow;
+          });
+
+          const tableColumns = importantColumns.map(col => ({
+            header: col.length > 20 ? col.substring(0, 17) + '...' : col,
+            dataKey: col
+          }));
+
           doc.autoTable({
             startY: yPos,
             columns: tableColumns,
-            body: report.data,
-            styles: { fontSize: 8 },
-            headStyles: { fillColor: [66, 139, 202] },
-            margin: { left: 14 },
+            body: cleanedData,
+            styles: {
+              fontSize: 7,
+              cellPadding: 2,
+              overflow: 'linebreak',
+              cellWidth: 'wrap'
+            },
+            headStyles: {
+              fillColor: [66, 139, 202],
+              fontSize: 8,
+              fontStyle: 'bold'
+            },
+            margin: { left: 10, right: 10 },
+            tableWidth: 'auto',
+            showHead: 'everyPage',
+            didDrawPage: (data) => {
+              // Add page numbers
+              const pageCount = doc.internal.getNumberOfPages();
+              doc.setFontSize(8);
+              doc.text(
+                `Side ${data.pageNumber} av ${pageCount}`,
+                doc.internal.pageSize.width / 2,
+                doc.internal.pageSize.height - 10,
+                { align: 'center' }
+              );
+            }
           });
         }
       }
@@ -162,7 +206,7 @@ export default function ShiftReport() {
       doc.save(`skiftrapport_${report.id}.pdf`);
     } catch (error) {
       console.error('Error generating PDF:', error);
-      alert('Feil ved PDF-generering');
+      alert('Feil ved PDF-generering: ' + error.message);
     }
   };
 
