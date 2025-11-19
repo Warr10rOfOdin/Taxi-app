@@ -42,9 +42,6 @@ try:
     from fastapi.middleware.cors import CORSMiddleware
     print("  ✅ CORSMiddleware imported", file=sys.stderr)
 
-    from mangum import Mangum
-    print("  ✅ Mangum imported", file=sys.stderr)
-
     print("✅ All FastAPI imports successful!", file=sys.stderr)
     initialization_status["fastapi"] = "success"
 
@@ -285,17 +282,6 @@ if database_available:
 else:
     print("⚠️  Skipping authentication endpoints (database unavailable)", file=sys.stderr)
 
-
-# Mangum handler for Vercel
-print("🔧 Creating Mangum handler for Vercel...", file=sys.stderr)
-try:
-    handler = Mangum(app, lifespan="off")
-    print("✅ Mangum handler created successfully", file=sys.stderr)
-except Exception as e:
-    print(f"🔥 Failed to create Mangum handler: {e}", file=sys.stderr)
-    traceback.print_exc()
-    raise
-
 print("=" * 80, file=sys.stderr)
-print("🎉 API module loaded successfully!", file=sys.stderr)
+print("🎉 API module loaded successfully (FastAPI app exposed via app.py)!", file=sys.stderr)
 print("=" * 80, file=sys.stderr)
