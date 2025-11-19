@@ -1,5 +1,4 @@
 fastapi==0.104.1
-mangum==0.17.0
 sqlalchemy==2.0.23
 pydantic==2.5.0
 email-validator==2.1.0
