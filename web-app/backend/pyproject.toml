@@ -1,4 +1,0 @@
-[project]
-name = "voss-taxi-backend"
-version = "1.0.0"
-requires-python = ">=3.11,<3.12"
