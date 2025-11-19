@@ -45,15 +45,21 @@ try:
         print(f"✓ Generic database engine created", file=sys.stderr)
 
 except Exception as e:
-    print(f"⚠ Warning: Could not create database engine: {e}", file=sys.stderr)
-    print(f"⚠ Using in-memory SQLite as fallback", file=sys.stderr)
-    # Fallback to in-memory SQLite
-    engine = create_engine(
-        "sqlite:///:memory:",
-        connect_args={"check_same_thread": False}
-    )
+    print(f"🔥 Failed to create database engine: {e}", file=sys.stderr)
+    import traceback
+    traceback.print_exc()
+    print(f"⚠️  App will start without database support", file=sys.stderr)
+    # Don't raise - allow app to start without DB
+    engine = None
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+# Only create SessionLocal if engine exists
+if engine is not None:
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    print(f"✓ SessionLocal created", file=sys.stderr)
+else:
+    SessionLocal = None
+    print(f"⚠️  SessionLocal not created (no engine)", file=sys.stderr)
+
 Base = declarative_base()
 
 print(f"✓ Database module initialized", file=sys.stderr)
@@ -61,6 +67,9 @@ print(f"✓ Database module initialized", file=sys.stderr)
 
 def get_db():
     """Dependency for getting database session"""
+    if engine is None:
+        # Fail fast when endpoints actually need DB
+        raise RuntimeError("Database engine is not available. Check logs for initialization errors.")
     db = SessionLocal()
     try:
         yield db
@@ -70,6 +79,9 @@ def get_db():
 
 def init_db():
     """Initialize database tables"""
+    if engine is None:
+        print(f"⚠️  Cannot initialize tables (no engine)", file=sys.stderr)
+        return
     try:
         Base.metadata.create_all(bind=engine)
         print(f"✓ Database tables initialized", file=sys.stderr)

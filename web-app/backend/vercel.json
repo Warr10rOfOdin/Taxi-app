@@ -1,15 +1,13 @@
 {
   "version": 2,
   "installCommand": "pip install -r requirements.txt",
-  "builds": [
-    {
-      "src": "api/index.py",
-      "use": "@vercel/python",
-      "config": {
-        "maxLambdaSize": "15mb"
-      }
+  "functions": {
+    "api/**/*.py": {
+      "runtime": "python3.11",
+      "memory": 1024,
+      "maxDuration": 10
     }
-  ],
+  },
   "routes": [
     {
       "src": "/(.*)",
